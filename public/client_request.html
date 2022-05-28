@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Read, write, Update, Delete Data </title>
+    
+    <!-- Loading Leaflet.js -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.8.0/dist/leaflet.css"
+    integrity="sha512-hoalWLoI8r4UszCkZ5kL8vayOGVae1oxXe/2A4AO6J9+580uKHDO3JdHb7NzwwzK5xr/Fs0W40kiNHxM9vyTtQ=="
+    crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.8.0/dist/leaflet.js"
+    integrity="sha512-BB3hKbKWOc9Ez/TAwyWxNXeoV9c1v6FIeYiBieIWkpLjauysF18NzgR1MBNBXf8/KABdlkX68nAhlwcDFLGPCQ=="
+    crossorigin=""></script>
+    <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+    <label>Receipt ID:</label> <input id="IDbox" type="text"><br><br>
+    <label>Light Sensor Threshold:</label> <input id="Ligbox" type="text"><br><br>
+    <label>MaxHumidity:</label> <input id="Humbox" type="text"><br><br>
+    <label>MaxPressure:</label> <input id="Prebox" type="text"><br><br>
+    <label>MaxTemperature:</label> <input id="Tembox" type="text"><br><br>
+    <label>MinHumidity:</label> <input id="Humbox2" type="text"><br><br>
+    <label>MinPressure:</label> <input id="Prebox2" type="text"><br><br>
+    <label>MinTemperature:</label> <input id="Tembox2" type="text"><br><br>
+    <label>Target Address:</label> <textarea id="Address"></textarea><button id="displayButton">Display location options</button><br>
+    <div id="map"></div>
+    <table id="DisplayOptions"></table><br><br>
+
+    <hr>
+    <button id="Insbtn">INSERT</button>
+    <button id="Seabtn">SEARCH</button>
+    <button id="Updbtn">UPDATE</button>
+    <button id="Delbtn">DELETE</button>
+    <button id="Genbtn">GENERATE</button>
+
+    <img id="qr">
+
+    <script src="map_process.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-app.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.8.1/firebase-analytics.js";
+        // TODO: Add SDKs for Firebase products that you want to use
+        // https://firebase.google.com/docs/web/setup#available-libraries
+
+        // Your web app's Firebase configuration
+        // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+        const firebaseConfig = {
+            apiKey: "AIzaSyByDRhxW7UP791BEECw0Ik0Liuw1Ffq6Ks",
+            authDomain: "test-ieda2100e.firebaseapp.com",
+            databaseURL: "https://test-ieda2100e-default-rtdb.firebaseio.com",
+            projectId: "test-ieda2100e",
+            storageBucket: "test-ieda2100e.appspot.com",
+            messagingSenderId: "23893685986",
+            appId: "1:23893685986:web:8a875804f092e1c6e010bb",
+            measurementId: "G-K4ZQTB54RZ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const analytics = getAnalytics(app);
+        import { getDatabase, ref, get, set, child, update, remove }
+            from "https://www.gstatic.com/firebasejs/9.8.1/firebase-database.js";
+        const db = getDatabase();
+
+        var IDbox = document.getElementById("IDbox");
+        var Ligbox = document.getElementById("Ligbox");
+        var Humbox = document.getElementById("Humbox");
+        var Prebox = document.getElementById("Prebox");
+        var Tembox = document.getElementById("Tembox");
+        var Humbox2 = document.getElementById("Humbox2");
+        var Prebox2 = document.getElementById("Prebox2");
+        var Tembox2 = document.getElementById("Tembox2");
+
+        var insBtn = document.getElementById("Insbtn");
+        var seaBtn = document.getElementById("Seabtn");
+        var updBtn = document.getElementById("Updbtn");
+        var delBtn = document.getElementById("Delbtn");
+        var genBtn = document.getElementById("Genbtn");
+
+        var displayBtn = document.getElementById("displayButton");
+        var optionTable = document.getElementById("DisplayOptions");
+
+        function genReceiptID() {
+            const monthNames = ["jan", "feb", "mar", "apr", "may", "jun", "jul", "aug", "sep", "oct", "nov", "dec"];
+            const d = new Date();
+            return "R" + monthNames[d.getMonth()] + (d.getDate() < 10 ? "0" : "") + d.getDate() + (d.getHours() < 10 ? "0" : "") + d.getHours() + (d.getMinutes() < 10 ? "0" : "") + d.getMinutes() + (Math.random() + 1).toString(36).substring(2,4);
+        }
+
+        function InsertData() {
+            set(ref(db, "Receipt Data/" + IDbox.value), {
+                LightSensorThreshold: Ligbox.value,
+                MaxHumidity: Humbox.value,
+                MaxPressure: Prebox.value,
+                MaxTemperature: Tembox.value,
+                MinHumidity: Humbox2.value,
+                MinPressure: Prebox2.value,
+                MinTemperature: Tembox2.value,
+                Lat: dest.lat,
+                Long: dest.long,
+            })
+                .then(() => {
+                    alert("data stored successfully");
+                })
+                .catch((error) => {
+                    alert("unsuccessful, error" + error);
+                });
+        }
+        function SearchData() {
+            const dbref = ref(db);
+            get(child(dbref, "Receipt Data/" + IDbox.value)).then((snapshot) => {
+                if (snapshot.exists()) {
+                    Ligbox.value = snapshot.val().LightSensorThreshold;
+                    Humbox.value = snapshot.val().MaxHumidity;
+                    Prebox.value = snapshot.val().MaxPressure;
+                    Tembox.value = snapshot.val().MaxTemperature;
+                    Humbox2.value = snapshot.val().MinHumidity;
+                    Prebox2.value = snapshot.val().MinPressure;
+                    Tembox2.value = snapshot.val().MinTemperature;
+                }
+                else {
+                    alert("No data found");
+                }
+            })
+                .catch((error) => {
+                    
+                    alert("unsuccessful, error" + error);
+                });
+        }
+
+        function UpdateData() {
+            update(ref(db, "Receipt Data/" + IDbox.value), {
+                LightSensorThreshold: Ligbox.value,
+                MaxHumidity: Humbox.value,
+                MaxPressure: Prebox.value,
+                MaxTemperature: Tembox.value,
+                MinHumidity: Humbox2.value,
+                MinPressure: Prebox2.value,
+                MinTemperature: Tembox2.value,
+                Lat: dest.lat,
+                Long: dest.long,
+            })
+                .then(() => {
+                    alert("data updated successfully");
+                })
+                .catch((error) => {
+                    alert("unsuccessful, error" + error);
+                });
+        }
+        function DeleteData() {
+            remove(ref(db, "Receipt Data/" + IDbox.value))
+                .then(() => {
+                    alert("data removed successfully");
+                })
+                .catch((error) => {
+                    alert("unsuccessful, error" + error);
+                });
+        }
+
+        function gen_qr(data) {
+            const qrImg = document.querySelector("#qr")
+            qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${data}`
+        }
+
+        async function getLocationOptions() {
+            const location = document.getElementById("Address").value;
+
+            const myObject = await fetch(`https://nominatim.openstreetmap.org/search.php?q=${location}&format=jsonv2`);
+            const myText = await myObject.text();
+            const options = JSON.parse(myText);
+
+            optionTable.innerHTML = "";
+
+            for (let optionID = 0; optionID < options.length; optionID++) {
+                let tr = document.createElement("tr");
+                tr.setAttribute("id", "row_" + optionID);
+                
+                const attris = ["display_name", "lat", "lon", "type"];
+                for (let attriID = 0; attriID < attris.length; attriID++) {
+                    let td = document.createElement("td");
+                    td.innerText = options[optionID][attris[attriID]];
+                    tr.appendChild(td);
+                }
+                optionTable.appendChild(tr);
+            }
+        }
+
+        insBtn.addEventListener('click', InsertData);
+        seaBtn.addEventListener('click', SearchData);
+        updBtn.addEventListener('click', UpdateData);
+        delBtn.addEventListener('click', DeleteData);
+        genBtn.addEventListener("click", () => gen_qr(IDbox.value));
+
+        displayBtn.addEventListener('click', getLocationOptions);
+        optionTable.addEventListener('click', selectLocation);
+
+        window.onload = () => {
+            IDbox.value = genReceiptID();
+        }
+    </script>

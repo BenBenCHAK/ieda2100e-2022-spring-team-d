@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Main system</title>
+
+        <style>
+            * {
+                background-color: rgba(255,255,255,255);
+            }
+
+            a {
+                font-size: large;
+            }
+        </style>
+    </head>
+    <body>
+        <div>
+            <a href="client_request.html" target="iframe">Service</a>
+            <a href="check truck id.html" target="iframe">Monitoring</a>
+            <button onclick="openFullscreen();">Full screen</button>
+            <button onclick="quitFullscreen();">Quit full screen</button>
+
+            <hr>
+
+            <iframe name="iframe" height="600px" width="100%"></iframe>
+        </div>
+    </body>
+
+    <script>
+        /* Get the element you want displayed in fullscreen mode (a video in this example): */
+        var element = document.getElementsByTagName("div")[0];
+        
+        /* When the openFullscreen() function is executed, open the video in fullscreen.
+        Note that we must include prefixes for different browsers, as they don't support the requestFullscreen method yet */
+        function openFullscreen() {
+            if (element.requestFullscreen) {
+                element.requestFullscreen();
+            }
+        }
+        function quitFullscreen() {
+            document.exitFullscreen();
+        }
+        </script>
+</html>
